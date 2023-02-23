@@ -7,8 +7,9 @@ old_wave = ""
 new_char = ""
 new_wave = ""
 starting_weapons = ""
+finished_logging_run = False
 with open(tracking_file, "r") as outputfile:
-    out_lines = outputfile.read().splitlines()
+    out_lines = outputfile.read().splitlines(keepends=True)
     if len(out_lines) == 0:
         out_lines.append("\n")
 
@@ -24,6 +25,7 @@ while True:
             if line.startswith("Wave: "):
                 new_wave = line[len("Wave: "):].strip()
             if new_wave == "1" and old_wave != "1" and line.startswith("Weapons: "):
+                finished_logging_run = False
                 starting_weapons = line[len("Weapons: "):].strip()
                 starting_weapons = starting_weapons.replace("weapon_", "")
                 starting_weapons = starting_weapons.replace("_1", "")
@@ -34,7 +36,6 @@ while True:
             if line.startswith("is_run_lost"):
                 run_lost = True
 
-        change = False
         # there are three reasons to edit the output: a new run started, a run ended in win, or a run ended in loss
         if new_wave == "1" and old_wave != "1":
             print("new run detected with " + new_char)
@@ -47,7 +48,8 @@ while True:
             out_lines[0] = new_char + ", " + starting_weapons + ": w" + new_wave + "\n"
             change = True
 
-        if change:
+        if change and not finished_logging_run:
+            finished_logging_run = True
             with open(tracking_file, "w") as outputfile:
                 outputfile.writelines(out_lines)
 
